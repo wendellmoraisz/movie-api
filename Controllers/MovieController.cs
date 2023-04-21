@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using MoviesApi.Data;
 using MoviesApi.Data.Dtos;
@@ -44,6 +45,36 @@ public class MovieController : ControllerBase
         var movie = _context.Movies.FirstOrDefault(movie => movie.Id == id);
         if (movie == null) return NotFound();
         return Ok(movie);
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult UpdateMovie(int id, [FromBody] UpdateMovieDto movieDto)
+    {
+        var movie = _context.Movies.FirstOrDefault(movie => movie.Id == id);
+        if (movie == null) return NotFound();
+        _mapper.Map(movieDto, movie);
+        _context.SaveChanges();
+        return NoContent();
+    }
+
+    [HttpPatch("{id}")]
+    public IActionResult UpdatePatchMovie(int id, JsonPatchDocument<UpdateMovieDto> patch)
+    {
+        var movie = _context.Movies.FirstOrDefault(movie => movie.Id == id);
+        if (movie == null) return NotFound();
+
+        var movieForUpdate = _mapper.Map<UpdateMovieDto>(movie);
+
+        patch.ApplyTo(movieForUpdate, ModelState);
+
+        if (!TryValidateModel(movieForUpdate))
+        {
+            return ValidationProblem();
+        }
+
+        _mapper.Map(movieForUpdate, movie);
+        _context.SaveChanges();
+        return NoContent();
     }
 
 }
