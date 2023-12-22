@@ -1,0 +1,30 @@
+services: 
+  
+  moviesdb:
+    image: mysql
+    container_name: moviesdb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/data/db
+  
+  movies.api:
+    image: ${DOCKER_REGISTRY-}moviesapi
+    container_name: moviesapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ConnectionStrings__MovieConnection=server=moviesdb;database=movie;user=root;password=root"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on: 
+      - moviesdb
+    ports:
+      - "80:80"
+  
+volumes: 
+  mysql_data:
