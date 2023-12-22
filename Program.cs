@@ -19,6 +19,11 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+var serviceScope = app.Services.CreateScope();
+
+var dataContext = serviceScope.ServiceProvider.GetService<MovieContext>();
+dataContext?.Database.Migrate();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
